@@ -17,7 +17,7 @@ class Sprite {
         this.framesCurrent = 0;
         this.framasElapsed = 0;
         this.framesHold = 15;
-        this.offset = offset
+        this.offset = offset;
 
         for (const sprite in this.sprites) {
             sprites[sprite].image = new Image()
@@ -30,7 +30,8 @@ class Sprite {
             this.image,
             this.framesCurrent * (this.image.width / this.framesMax),
             0,
-            this.image.width / this.framesMax, this.image.height,
+            this.image.width / this.framesMax,
+            this.image.height,
             this.position.x - this.offset.x,
             this.position.y - this.offset.y,
             (this.image.width / this.framesMax) * this.scale,
@@ -65,7 +66,8 @@ class Fighter extends Sprite {
                     scale = 1,
                     framesMax = 1,
                     offset = {x: 0, y: 0},
-                    sprites
+                    sprites,
+        attackBox = {offset: {}, width: undefined, height: undefined}
 
                 }) {
         super({
@@ -84,18 +86,19 @@ class Fighter extends Sprite {
                 x: this.position.x,
                 y: this.position.y,
             },
-            offset,
-            width: 100,
-            height: 50,
+            offset: attackBox.offset,
+            width: attackBox.width,
+            height: attackBox.height,
         }
         this.color = color;
-        this.isAttacking = false;
+        this.isAttacking;
         this.height = 100;
         this.health = 100; // Định nghĩa máu cho player và enemy
         this.framesCurrent = 0;
         this.framasElapsed = 0;
         this.framesHold = 15;
         this.sprites = sprites
+
         for (const sprite in this.sprites) {
             sprites[sprite].image = new Image()
             sprites[sprite].image.src = sprites[sprite].imageSrc
@@ -107,8 +110,16 @@ class Fighter extends Sprite {
         this.draw();
         this.animateFrame()
 
+        // attack boxes-hộp tấn công
         this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
-        this.attackBox.position.y = this.position.y;
+        this.attackBox.position.y = this.position.y + this.attackBox.offset.y;
+
+        c.fillRect(
+            this.attackBox.position.x,
+            this.attackBox.position.y,
+            this.attackBox.width,
+            this.attackBox.height
+        )
 
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
@@ -124,10 +135,10 @@ class Fighter extends Sprite {
 
     attack() {
         this.switchSprite('attack1')
-        this.isAttacking = true;
+        this.isAttacking = true
         setTimeout(() => {
-            this.isAttacking = false;
-        }, 100)
+            this.isAttacking = false
+        }, 1000)
     }
 
     switchSprite(Sprite) {
@@ -153,7 +164,8 @@ class Fighter extends Sprite {
             case 'jump':
                 if (this.image !== this.sprites.jump.image) {
                     player.image = player.sprites.jump.image;
-                    player.framesMax = player.sprites.jump.framesMax;
+                    player.framesMax = player.sprites.jump.framesMax
+                    this.framesCurrent= 0;
                 }
                 break;
             case 'fall':
@@ -186,7 +198,17 @@ class Fighter extends Sprite {
             // Giảm máu của đối tượng bị tấn công
             otherSprite.health -= 20;
             document.querySelector(`#${otherSprite.type}Health`).style.width = otherSprite.health + '%';
+            this.isPlayerAttacking = false;
+        } else if (
+            rectangularCollision({
+                rectangle1: this,
+                rectangle2: otherSprite,
+            }) &&
+            this.isEnemyAttacking &&
+            this.type !== otherSprite.type
+        ) {
+            this.isEnemyAttacking = false; // Cập nhật trạng thái tấn công cho kẻ thù
+            // Xử lý tấn công kẻ thù tại đây
         }
     }
-
 }

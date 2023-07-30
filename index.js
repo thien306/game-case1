@@ -71,10 +71,10 @@ const player = new Fighter({
     },
     attackBox: {
         offset: {
-            x: 0,
-            y:0,
+            x: 100,
+            y:50,
         },
-        width: 100,
+        width: 160,
         height: 50,
     }
 });
@@ -171,20 +171,14 @@ function animate() {
     enemy.velocity.x = 0;
 
     // player movement-chuyển động của người chơi
-
-    player.switchSprite('idle')
     if (keys.a.pressed && player.lastKey === 'a') {
         player.velocity.x = -5;
         player.switchSprite('run');
     } else if (keys.d.pressed && player.lastKey === 'd') {
         player.velocity.x = 5
-        player.image = player.sprites.run.image;
+        player.switchSprite('run');
     } else {
         player.switchSprite('idle')
-    }
-
-    if (player.velocity.y < 0) {
-        player.switchSprite('jump')
     }
 
     //jumping-nhảy
@@ -192,7 +186,6 @@ function animate() {
       player.switchSprite('jump')
     } else if (player.velocity.y > 0) {
         player.switchSprite('fall');
-
     }
 
     // enemy movement-chuyển động của kẻ thù
@@ -207,12 +200,40 @@ function animate() {
     }
 
     //jumping-nhảy
-    if(player.velocity.y < 0) {
+    if(enemy.velocity.y < 0) {
         enemy.switchSprite('jump')
-    } else if (player.velocity.y > 0) {
+    } else if (enemy.velocity.y > 0) {
         enemy.switchSprite('fall');
 
     }
+
+    // detect for collision-phát hiện va chạm
+
+    if (
+        rectangularCollision({
+            rectangle1: enemy,
+            rectangle2: player
+        }) &&
+        enemy.isAttacking &&
+        player.framesCurrent === 4
+    ) {
+        enemy.isAttacking = false;
+        player.health -= 20;
+        document.querySelector('#enemyHealth').style.width = enemy.health + '%'
+    }
+
+    if (
+        rectangularCollision({
+            rectangle1: enemy,
+            rectangle2: player
+        }) &&
+        enemy.isAttacking
+    ) {
+        enemy.isAttacking = false;
+        player.health -= 20;
+        document.querySelector('#enemyHealth').style.width = enemy.health + '%'
+    }
+
 
     // detect for collision and handle attacks-phát hiện va chạm và xử lý các cuộc tấn công
     player.handleCollision(enemy);
@@ -256,7 +277,7 @@ window.addEventListener('keydown', (event) => {
             enemy.velocity.y = -10;
             break;
         case 'ArrowDown':
-            enemy.isAttacking = true;
+            enemy.attack();
             break;
     }
 });
